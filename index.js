@@ -1,6 +1,4 @@
-//@flow
-
-import React from "react"
+import React, { Component } from "react"
 import {
   View,
   Text,
@@ -15,9 +13,9 @@ import {
 
 type Props = {
   bottom?: boolean,
-  isOpenWifiSetting?: boolean,
   visible?: boolean,
   debound?: number,
+  timeOut?: number,
   txtConnected?: string,
   txtDisconnected?: string,
   styleConnected?: Object | Number,
@@ -42,18 +40,16 @@ type NetworkData = {
 export const Settings = NativeModules.RNNetworkState
 const RNNetworkStateEventEmitter = new NativeEventEmitter(Settings)
 
-export default class NetworkState extends React.PureComponent<Props> {
-
+export default class NetworkState extends Component {
   static defaultProps = {
-    isOpenWifiSetting: false,
-    bottom: false,
     visible: true,
+    bottom: false,
     debound: 1500,
+    timeOut: 2000,
     txtConnected: "Connected",
     txtDisconnected: "No Internet Connection",
     onConnected: () => { },
-    onDisconnected: () => {
-    }
+    onDisconnected: () => { }
   }
 
   state: State = {
@@ -62,50 +58,41 @@ export default class NetworkState extends React.PureComponent<Props> {
     type: "unknown",
     isFast: true
   }
-
-  _TIMEOUT = null
   _listener: any = null
 
   constructor(props: Props) {
     super(props)
-    const { onConnected, onDisconnected, debound } = this.props
+
+    const { onConnected, onDisconnected, timeOut } = this.props
     this._listener = RNNetworkStateEventEmitter.addListener(
       "networkChanged",
-      (data: NetworkData) => {
+      (data) => {
         if (this.state.isConnected !== data.isConnected) {
-          data.isConnected ? onConnected(data) : this.onDisconnected(data)
+          data.isConnected ? onConnected(data) : onDisconnected(data)
           this.setState({ ...data, hidden: false }, () => {
             var that = this;
-            setTimeout(function () {
-              that.setState({ hidden: true });
-            }, debound);
+            setTimeout(function () { that.setState({ hidden: true }) }, timeOut);
           })
         }
       }
     )
   }
-  onDisconnected(data) {
-    const { isOpenWifiSetting, onDisconnected } = this.props
-    if (isOpenWifiSetting) {
-      Settings.openWifi();
-    } else {
-      onDisconnected(data);
-    }
-  }
 
   componentWillUnmount() {
     this._listener.remove()
   }
-
+  openWifiSetting(){
+    Settings.openWifi();
+  }
   render() {
     const {
+      bottom,
       txtConnected,
       txtDisconnected,
       styleConnected,
       styleDisconnected,
       debound,
       visible,
-      bottom,
       ...viewProps
     } = this.props
 
@@ -137,17 +124,6 @@ export default class NetworkState extends React.PureComponent<Props> {
 }
 
 const styles = StyleSheet.create({
-  containerTop: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    ...Platform.select({
-      ios: {
-        marginTop: 20
-      }
-    })
-  },
   containerBottom: {
     position: "absolute",
     bottom: 0,
@@ -159,7 +135,17 @@ const styles = StyleSheet.create({
       }
     })
   },
-
+  containerTop: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    ...Platform.select({
+      ios: {
+        marginTop: 20
+      }
+    })
+  },
   txtSuccess: {
     paddingVertical: 5,
     color: "#fff",
@@ -173,13 +159,15 @@ const styles = StyleSheet.create({
     textAlign: "center"
   }
 })
-// Props to use
-// var propsNetwork = {
-//   isOpenWifiSetting: true,
-//   bottom: true,
-//   debound:2000,
-//   txtConnected: 'KHUONGND CONNECTED',
-//   txtDisconnected: 'KHUONGND DISCONNECTED',
-//   onDisconnected: (data) => { console.log('onDisconnected' + data) },
-//   onConnected: () => { console.log('onConnected') },
-
+ // var propsNetwork = {
+    //   bottom: true,
+    //   txtConnected: 'KHUONGND CONNECTED',
+    //   txtDisconnected: 'KHUONGND DISCONNECTED',
+    //   visible:false,
+    //   timeOut: 5000,
+    //   onDisconnected: () => {
+    //     console.log('onDisconnected'),
+    //     this.refs.network.openWifiSetting()
+    //   },
+    //   onConnected: () => { console.log('onConnected') },
+    // }
