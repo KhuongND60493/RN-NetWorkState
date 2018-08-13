@@ -1,6 +1,6 @@
 # RN-NetWorkState
 readmore add :https://github.com/react-native-vietnam/react-native-network-state
-mycustom: 
+# mycustom: 
     var propsNetwork = {
       // isOpenWifiSetting: true,
       // bottom: true,
