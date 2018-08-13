@@ -182,4 +182,4 @@ const styles = StyleSheet.create({
 //   txtDisconnected: 'KHUONGND DISCONNECTED',
 //   onDisconnected: (data) => { console.log('onDisconnected' + data) },
 //   onConnected: () => { console.log('onConnected') },
-// }
+
