@@ -68,13 +68,18 @@ export default class NetworkState extends React.PureComponent<Props> {
 
   constructor(props: Props) {
     super(props)
-    const { onConnected, onDisconnected } = this.props
+    const { onConnected, onDisconnected, debound } = this.props
     this._listener = RNNetworkStateEventEmitter.addListener(
       "networkChanged",
       (data: NetworkData) => {
         if (this.state.isConnected !== data.isConnected) {
           data.isConnected ? onConnected(data) : this.onDisconnected(data)
-          this.setState({ ...data, hidden: false })
+          this.setState({ ...data, hidden: false }, () => {
+            var that = this;
+            setTimeout(function () {
+              that.setState({ hidden: true });
+            }, debound);
+          })
         }
       }
     )
@@ -86,9 +91,6 @@ export default class NetworkState extends React.PureComponent<Props> {
     } else {
       onDisconnected(data);
     }
-  }
-  componentWillMount() {
-    // console.log(this.props.isOpenWifiSetting+'');
   }
 
   componentWillUnmount() {
@@ -117,7 +119,7 @@ export default class NetworkState extends React.PureComponent<Props> {
       return <View />
     }
     return (
-      <View style={bottom?styles.containerBottom:styles.containerTop} {...viewProps}>
+      <View style={bottom ? styles.containerBottom : styles.containerTop} {...viewProps}>
         <Text
           style={[
             this.state.isConnected ? styles.txtSuccess : styles.txtError,
