@@ -14,6 +14,8 @@ import {
 } from "react-native"
 
 type Props = {
+  bottom?: boolean,
+  isOpenWifiSetting?: boolean,
   visible?: boolean,
   debound?: number,
   txtConnected?: string,
@@ -41,13 +43,17 @@ export const Settings = NativeModules.RNNetworkState
 const RNNetworkStateEventEmitter = new NativeEventEmitter(Settings)
 
 export default class NetworkState extends React.PureComponent<Props> {
+
   static defaultProps = {
+    isOpenWifiSetting: false,
+    bottom: false,
     visible: true,
     debound: 1500,
     txtConnected: "Connected",
     txtDisconnected: "No Internet Connection",
-    onConnected: () => {},
-    onDisconnected: () => {}
+    onConnected: () => { },
+    onDisconnected: () => {
+    }
   }
 
   state: State = {
@@ -62,17 +68,27 @@ export default class NetworkState extends React.PureComponent<Props> {
 
   constructor(props: Props) {
     super(props)
-
     const { onConnected, onDisconnected } = this.props
     this._listener = RNNetworkStateEventEmitter.addListener(
       "networkChanged",
       (data: NetworkData) => {
         if (this.state.isConnected !== data.isConnected) {
-          data.isConnected ? onConnected(data) : onDisconnected(data)
+          data.isConnected ? onConnected(data) : this.onDisconnected(data)
           this.setState({ ...data, hidden: false })
         }
       }
     )
+  }
+  onDisconnected(data) {
+    const { isOpenWifiSetting, onDisconnected } = this.props
+    if (isOpenWifiSetting) {
+      Settings.openWifi();
+    } else {
+      onDisconnected(data);
+    }
+  }
+  componentWillMount() {
+    // console.log(this.props.isOpenWifiSetting+'');
   }
 
   componentWillUnmount() {
@@ -87,6 +103,7 @@ export default class NetworkState extends React.PureComponent<Props> {
       styleDisconnected,
       debound,
       visible,
+      bottom,
       ...viewProps
     } = this.props
 
@@ -100,7 +117,7 @@ export default class NetworkState extends React.PureComponent<Props> {
       return <View />
     }
     return (
-      <View style={styles.container} {...viewProps}>
+      <View style={bottom?styles.containerBottom:styles.containerTop} {...viewProps}>
         <Text
           style={[
             this.state.isConnected ? styles.txtSuccess : styles.txtError,
@@ -118,7 +135,7 @@ export default class NetworkState extends React.PureComponent<Props> {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  containerTop: {
     position: "absolute",
     top: 0,
     left: 0,
@@ -129,6 +146,18 @@ const styles = StyleSheet.create({
       }
     })
   },
+  containerBottom: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    ...Platform.select({
+      ios: {
+        marginTop: 20
+      }
+    })
+  },
+
   txtSuccess: {
     paddingVertical: 5,
     color: "#fff",
