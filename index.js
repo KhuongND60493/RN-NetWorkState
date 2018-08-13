@@ -173,3 +173,13 @@ const styles = StyleSheet.create({
     textAlign: "center"
   }
 })
+// Props to use
+// var propsNetwork = {
+//   isOpenWifiSetting: true,
+//   bottom: true,
+//   debound:2000,
+//   txtConnected: 'KHUONGND CONNECTED',
+//   txtDisconnected: 'KHUONGND DISCONNECTED',
+//   onDisconnected: (data) => { console.log('onDisconnected' + data) },
+//   onConnected: () => { console.log('onConnected') },
+// }
